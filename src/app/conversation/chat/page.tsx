@@ -100,6 +100,8 @@ export default function ChatPage() {
 
   // 播放 TTS
   const playTTS = async (text: string) => {
+    if (!voiceEnabled || !text) return
+
     try {
       const response = await fetch("/api/speech/tts", {
         method: "POST",

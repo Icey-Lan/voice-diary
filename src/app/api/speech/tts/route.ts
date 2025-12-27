@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AI_CONFIG } from '@/lib/ai-service'
 
-// 智谱 GLM-TTS 文字转语音 API
-// 文档: https://docs.bigmodel.cn/cn/guide/models/sound-and-video/glm-tts
+// Gemini API 文字转语音
+// 文档: https://ai.google.dev/gemini-api/docs/speech-generation
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { text, speed = 1.0 } = body
+    const { text } = body
 
     if (!text) {
       return NextResponse.json(
@@ -15,26 +15,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 调用智谱 GLM-TTS API
-    const response = await fetch('https://open.bigmodel.cn/api/paas/v4/audio/speech', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${AI_CONFIG.zhipu.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'glm-tts',
-        input: text,
-        voice: 'female', // 默认使用女声
-        speed,
-        response_format: 'wav',
-      }),
-    })
+    // 调用 Gemini API 生成音频
+    // 使用 gemini-2.0-flash-exp 模型支持音频生成
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${AI_CONFIG.gemini.apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `请将以下文字转换为中文语音朗读，使用自然的中文发音："${text}"`
+            }]
+          }],
+          generationConfig: {
+            responseMimeType: 'audio/mp3',
+          },
+        }),
+      }
+    )
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Zhipu TTS API error:', response.status, errorText)
-      throw new Error(`Zhipu TTS API error: ${response.status} ${errorText}`)
+      console.error('Gemini TTS API error:', response.status, errorText)
+      throw new Error(`Gemini TTS API error: ${response.status} ${errorText}`)
     }
 
     // 返回音频数据
@@ -42,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return new NextResponse(audioBuffer, {
       headers: {
-        'Content-Type': 'audio/wav',
+        'Content-Type': 'audio/mpeg',
         'Content-Length': audioBuffer.byteLength.toString(),
       },
     })
