@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import { ChatMessage } from "@/components/ChatMessage"
+import { LiveVoiceChat } from "@/components/LiveVoiceChat"
 import { useConversationStore } from "@/store/conversationStore"
 import { usePreferencesStore } from "@/store/preferencesStore"
 import { getGreetingMessage } from "@/lib/prompts"
+
+type ChatMode = "classic" | "live"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -25,6 +28,7 @@ export default function ChatPage() {
   const { dialogueFocus, voiceEnabled } = usePreferencesStore()
   const [inputText, setInputText] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [chatMode, setChatMode] = useState<ChatMode>("classic")
 
   // 初始化会话
   useEffect(() => {
@@ -136,6 +140,12 @@ export default function ChatPage() {
     )
   }
 
+  // Live API 模式
+  if (chatMode === "live") {
+    return <LiveVoiceChat focus={dialogueFocus} onSessionEnd={handleFinish} />
+  }
+
+  // 经典聊天模式
   return (
     <div className="min-h-screen flex flex-col">
       {/* 顶部导航 */}
@@ -153,12 +163,23 @@ export default function ChatPage() {
             <h1 className="text-lg font-semibold text-[#2c2416]">对话中</h1>
             <p className="text-xs text-[#5c4a32]/60">和 AI 聊聊今天</p>
           </div>
-          <button
-            onClick={handleFinish}
-            className="text-sm text-[#9caf88] hover:text-[#7a8f6d] font-medium transition-colors"
-          >
-            完成
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setChatMode("live")}
+              className="text-sm text-[#5c4a32] hover:text-[#9caf88] font-medium transition-colors"
+              title="切换到实时语音对话"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+            <button
+              onClick={handleFinish}
+              className="text-sm text-[#9caf88] hover:text-[#7a8f6d] font-medium transition-colors"
+            >
+              完成
+            </button>
+          </div>
         </div>
       </header>
 
