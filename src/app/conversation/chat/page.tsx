@@ -8,7 +8,6 @@ import { ChatMessage } from "@/components/ChatMessage"
 import { useConversationStore } from "@/store/conversationStore"
 import { usePreferencesStore } from "@/store/preferencesStore"
 import { getGreetingMessage } from "@/lib/prompts"
-import { ChatMessage as ChatMessageType } from "@/types"
 
 export default function ChatPage() {
   const router = useRouter()
@@ -23,7 +22,7 @@ export default function ChatPage() {
     startNewSession,
     endSession,
   } = useConversationStore()
-  const { focus, voiceEnabled } = usePreferencesStore()
+  const { dialogueFocus, voiceEnabled } = usePreferencesStore()
   const [inputText, setInputText] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -73,7 +72,7 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [...messages, { role: "user", content: text }],
-          focus,
+          focus: dialogueFocus,
         }),
       })
 
