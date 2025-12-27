@@ -27,11 +27,19 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `请将以下文字转换为中文语音朗读，使用自然的中文发音："${text}"`
+              text: text
             }]
           }],
           generationConfig: {
             responseMimeType: 'audio/mp3',
+            // 添加语音配置
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName: 'cmn-CN-Wavenet-A'  // 中文语音
+                }
+              }
+            }
           },
         }),
       }
@@ -55,7 +63,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('TTS error:', error)
     return NextResponse.json(
-      { error: 'Failed to generate speech' },
+      { error: 'Failed to generate speech', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

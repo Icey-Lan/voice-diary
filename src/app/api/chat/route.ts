@@ -99,5 +99,16 @@ async function callGeminiChat(messages: Array<{ role: string; content: string }>
   }
 
   const data = await response.json()
-  return data.candidates[0].content.parts[0].text
+
+  // 安全地解析响应
+  if (!data.candidates || data.candidates.length === 0) {
+    throw new Error('Gemini API returned no candidates')
+  }
+
+  const candidate = data.candidates[0]
+  if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+    throw new Error('Gemini API returned invalid response format')
+  }
+
+  return candidate.content.parts[0].text || '抱歉，我遇到了一些问题。'
 }
