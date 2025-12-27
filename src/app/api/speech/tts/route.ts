@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 调用 Gemini API 生成音频
-    // 使用 gemini-2.0-flash-exp 模型支持音频生成
+    // 使用 gemini-2.5-flash-preview-tts 专用 TTS 模型
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${AI_CONFIG.gemini.apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${AI_CONFIG.gemini.apiKey}`,
       {
         method: 'POST',
         headers: {
