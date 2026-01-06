@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Icon, iconMap } from "@/components/icons/Icon"
 import { Diary, MOOD_TAGS, WEATHER_OPTIONS } from "@/types"
+import { useAuthStore } from "@/store/authStore"
 
 // 获取天气图标信息
 function getWeatherInfo(weather: string) {
@@ -22,12 +23,68 @@ function truncateText(text: string, maxLength: number = 50) {
 }
 
 export default function GalleryPage() {
+  const { isAuthenticated } = useAuthStore()
   const [diaries, setDiaries] = useState<Diary[]>([])
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // 从 localStorage 加载日记数据
+  // 加载日记数据
   useEffect(() => {
-    const loadDiaries = () => {
+    const loadDiaries = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        if (isAuthenticated) {
+          // 从云端加载数据
+          const response = await fetch("/api/diaries")
+          if (!response.ok) {
+            throw new Error("Failed to fetch diaries")
+          }
+          const data = await response.json()
+          setDiaries(data.diaries || [])
+        } else {
+          // 从 localStorage 加载数据（备用）
+          const saved = localStorage.getItem("diaries")
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved)
+              setDiaries(parsed)
+            } catch (error) {
+              console.error("Failed to parse diaries:", error)
+              setDiaries([])
+            }
+          } else {
+            setDiaries([])
+          }
+        }
+      } catch (error) {
+        console.error("Error loading diaries:", error)
+        setError("加载日记失败")
+        // 降级到 localStorage
+        const saved = localStorage.getItem("diaries")
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved)
+            setDiaries(parsed)
+          } catch (e) {
+            setDiaries([])
+          }
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadDiaries()
+  }, [isAuthenticated])
+
+  // 监听 localStorage 变化（仅用于未登录用户）
+  useEffect(() => {
+    if (isAuthenticated) return
+
+    const handleStorageChange = () => {
       const saved = localStorage.getItem("diaries")
       if (saved) {
         try {
@@ -35,28 +92,18 @@ export default function GalleryPage() {
           setDiaries(parsed)
         } catch (error) {
           console.error("Failed to parse diaries:", error)
-          setDiaries([])
         }
       }
     }
 
-    loadDiaries()
-
-    // 监听 localStorage 变化（当新日记保存时更新列表）
-    const handleStorageChange = () => {
-      loadDiaries()
-    }
-
     window.addEventListener("storage", handleStorageChange)
-
-    // 自定义事件监听（同页面内的更新）
     window.addEventListener("diariesUpdated", handleStorageChange)
 
     return () => {
       window.removeEventListener("storage", handleStorageChange)
       window.removeEventListener("diariesUpdated", handleStorageChange)
     }
-  }, [])
+  }, [isAuthenticated])
 
   const toggleCard = (id: string) => {
     const newExpanded = new Set(expandedCards)
@@ -82,14 +129,46 @@ export default function GalleryPage() {
           <h1 className="text-lg font-semibold text-slate-800">
             日记回廊
           </h1>
+          {!isAuthenticated && (
+            <Link
+              href="/auth"
+              className="ml-auto text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              登录
+            </Link>
+          )}
         </div>
       </header>
 
       {/* 主内容 */}
       <main className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* 空状态或日记列表 */}
-          {diaries.length === 0 ? (
+          {/* 加载状态 */}
+          {isLoading && (
+            <div className="text-center py-16">
+              <div className="relative w-20 h-20 mx-auto mb-4">
+                <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
+                <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
+              </div>
+              <p className="text-slate-600">加载中...</p>
+            </div>
+          )}
+
+          {/* 错误状态 */}
+          {error && !isLoading && (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-2">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm text-indigo-600 hover:text-indigo-700"
+              >
+                重试
+              </button>
+            </div>
+          )}
+
+          {/* 空状态 */}
+          {!isLoading && diaries.length === 0 && (
             <div className="text-center py-16 space-y-4">
               <div className="flex justify-center">
                 <div className="icon-soft-secondary">
@@ -109,7 +188,10 @@ export default function GalleryPage() {
                 开始写日记
               </Link>
             </div>
-          ) : (
+          )}
+
+          {/* 日记列表 */}
+          {!isLoading && diaries.length > 0 && (
             <div className="space-y-6">
               {diaries.map((diary, index) => {
                 const weatherInfo = getWeatherInfo(diary.weather)

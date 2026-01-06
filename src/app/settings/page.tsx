@@ -1,9 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Icon } from "@/components/icons/Icon"
 import { usePreferencesStore } from "@/store/preferencesStore"
 import { useDiaryStore } from "@/store/diaryStore"
+import { useAuthStore } from "@/store/authStore"
 import { DialogueFocus, Diary } from "@/types"
 
 const FOCUS_OPTIONS = [
@@ -23,9 +26,25 @@ function calculateTotalWords(diaries: Diary[]): number {
 }
 
 export default function SettingsPage() {
+  const router = useRouter()
   const { dialogueFocus, voiceEnabled, ttsSpeed, setPreferences } = usePreferencesStore()
   const { diaries } = useDiaryStore()
+  const { user, isAuthenticated, logout } = useAuthStore()
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const totalWords = calculateTotalWords(diaries)
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    try {
+      await fetch("/api/auth/sign-out", { method: "POST" })
+      logout()
+      router.push("/")
+    } catch (error) {
+      console.error("Sign out error:", error)
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50">
@@ -47,6 +66,52 @@ export default function SettingsPage() {
       {/* 主内容 */}
       <main className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* 账户状态 */}
+          <section className="card-flat p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">
+              账户
+            </h2>
+            {isAuthenticated ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                    <span className="text-white text-lg">👤</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-slate-800">{user?.email}</div>
+                    <div className="text-sm text-slate-500">已登录 · 云端同步已启用</div>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="w-full py-2 px-4 rounded-lg border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSigningOut ? "登出中..." : "登出"}
+                  <span>→</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+                    <span className="text-slate-500 text-lg">👤</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-slate-800">未登录</div>
+                    <div className="text-sm text-slate-500">登录以启用云端同步</div>
+                  </div>
+                </div>
+                <Link
+                  href="/auth"
+                  className="block w-full py-2 px-4 rounded-lg btn-primary text-center font-medium"
+                >
+                  立即登录
+                </Link>
+              </div>
+            )}
+          </section>
           {/* 对话偏好 */}
           <section className="card-flat p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4">

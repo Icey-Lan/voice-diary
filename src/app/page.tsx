@@ -1,7 +1,57 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Icon } from "@/components/icons/Icon"
+import { useAuthStore } from "@/store/authStore"
+import { createClient } from "@/lib/supabase"
 
 export default function Home() {
+  const { user, isAuthenticated, setUser } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? null,
+          })
+        }
+      } catch (error) {
+        console.error("Error checking user:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkUser()
+  }, [setUser])
+
+  // 监听认证状态变化
+  useEffect(() => {
+    const supabase = createClient()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email ?? null,
+        })
+      } else {
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [setUser])
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       {/* 顶部导航 */}
@@ -23,6 +73,14 @@ export default function Home() {
             >
               设置
             </Link>
+            {!isLoading && !isAuthenticated && (
+              <Link
+                href="/auth"
+                className="text-sm text-indigo-600 hover:text-indigo-700 transition-colors font-medium"
+              >
+                登录
+              </Link>
+            )}
           </nav>
         </div>
       </header>
@@ -41,11 +99,12 @@ export default function Home() {
 
             <div className="space-y-3">
               <h2 className="text-3xl font-semibold text-slate-800 tracking-tight">
-                你好呀
+                {isAuthenticated ? `你好，${user?.email}` : "你好呀"}
               </h2>
               <p className="text-slate-600 leading-relaxed">
-                我是你的 AI 日记伙伴，<br />
-                想聊聊今天发生什么了吗？
+                {isAuthenticated
+                  ? "准备好记录今天的故事了吗？"
+                  : "我是你的 AI 日记伙伴，想聊聊今天发生什么了吗？"}
               </p>
             </div>
 
@@ -58,15 +117,32 @@ export default function Home() {
               <Icon name="chevron-left" size={20} className="rotate-180" />
             </Link>
 
-            {/* 最近日记预览 */}
-            <div className="pt-6 border-t border-slate-200">
-              <p className="text-sm text-slate-500 mb-3">
-                上次记录：3 天前
-              </p>
-              <div className="text-sm text-slate-600">
-                点击&ldquo;开始写日记&rdquo;记录今天的点滴
+            {/* 未登录提示 */}
+            {!isLoading && !isAuthenticated && (
+              <div className="pt-4 border-t border-slate-200">
+                <p className="text-sm text-slate-500 mb-3">
+                  登录后可云端同步你的日记
+                </p>
+                <Link
+                  href="/auth"
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                >
+                  立即登录 →
+                </Link>
               </div>
-            </div>
+            )}
+
+            {/* 最近日记预览 */}
+            {isAuthenticated && (
+              <div className="pt-6 border-t border-slate-200">
+                <p className="text-sm text-slate-500 mb-3">
+                  上次记录：3 天前
+                </p>
+                <div className="text-sm text-slate-600">
+                  点击"开始写日记"记录今天的点滴
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

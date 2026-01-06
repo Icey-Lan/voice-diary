@@ -6,6 +6,7 @@ import { Icon, iconMap } from "@/components/icons/Icon"
 import { ChatMessage } from "@/components/ChatMessage"
 import { useConversationStore } from "@/store/conversationStore"
 import { useDiaryStore } from "@/store/diaryStore"
+import { useAuthStore } from "@/store/authStore"
 import { Diary, MOOD_TAGS, WEATHER_OPTIONS } from "@/types"
 
 type ViewMode = "conversation" | "diary"
@@ -14,8 +15,10 @@ export default function PreviewPage() {
   const router = useRouter()
   const { messages, currentSession } = useConversationStore()
   const { currentDiary, setCurrentDiary, setConversationHistory } = useDiaryStore()
+  const { isAuthenticated } = useAuthStore()
   const [viewMode, setViewMode] = useState<ViewMode>("conversation")
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [generatedDiary, setGeneratedDiary] = useState<Diary | null>(currentDiary)
 
   useEffect(() => {
@@ -68,15 +71,37 @@ export default function PreviewPage() {
     }
   }
 
-  const handleSave = () => {
-    if (generatedDiary) {
-      // 保存到本地存储（后续会同步到 Supabase）
-      const savedDiaries = JSON.parse(localStorage.getItem("diaries") || "[]")
-      savedDiaries.unshift(generatedDiary)
-      localStorage.setItem("diaries", JSON.stringify(savedDiaries))
+  const handleSave = async () => {
+    if (!generatedDiary) return
 
-      // 触发自定义事件，通知其他页面更新
-      window.dispatchEvent(new Event("diariesUpdated"))
+    setIsSaving(true)
+
+    try {
+      if (isAuthenticated) {
+        // 保存到云端
+        const response = await fetch("/api/diaries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            date: generatedDiary.date,
+            weather: generatedDiary.weather,
+            moodTags: generatedDiary.moodTags,
+            content: generatedDiary.content,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to save diary")
+        }
+      } else {
+        // 保存到本地存储
+        const savedDiaries = JSON.parse(localStorage.getItem("diaries") || "[]")
+        savedDiaries.unshift(generatedDiary)
+        localStorage.setItem("diaries", JSON.stringify(savedDiaries))
+
+        // 触发自定义事件，通知其他页面更新
+        window.dispatchEvent(new Event("diariesUpdated"))
+      }
 
       // 清空当前会话
       useDiaryStore.getState().clearCurrentSession()
@@ -84,6 +109,11 @@ export default function PreviewPage() {
 
       // 跳转到日记回廊
       router.push("/gallery")
+    } catch (error) {
+      console.error("Error saving diary:", error)
+      alert("保存失败，请重试")
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -264,15 +294,17 @@ export default function PreviewPage() {
             <>
               <button
                 onClick={handleRegenerate}
-                className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                disabled={isSaving}
+                className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
                 重新生成
               </button>
               <button
                 onClick={handleSave}
-                className="btn-primary flex-1 py-3 font-medium"
+                disabled={isSaving}
+                className="btn-primary flex-1 py-3 font-medium disabled:opacity-50"
               >
-                保存日记
+                {isSaving ? "保存中..." : "保存日记"}
               </button>
             </>
           )}
