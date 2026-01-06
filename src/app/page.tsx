@@ -14,6 +14,11 @@ export default function Home() {
     const checkUser = async () => {
       try {
         const supabase = createClient()
+        if (!supabase) {
+          setIsLoading(false)
+          return
+        }
+
         const { data: { session } } = await supabase.auth.getSession()
 
         if (session?.user) {
@@ -38,6 +43,11 @@ export default function Home() {
 
     try {
       const supabase = createClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
+
       const {
         data: { subscription: sub },
       } = supabase.auth.onAuthStateChange((_event, session) => {

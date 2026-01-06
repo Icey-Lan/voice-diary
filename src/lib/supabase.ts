@@ -1,17 +1,22 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
 
 /**
- * 获取 Supabase 环境变量
+ * 获取 Supabase 环境变量（客户端安全）
  */
-function getSupabaseConfig() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!url || !key) {
-    return null
+function getSupabaseEnv() {
+  // 在浏览器环境中，从 window 获取环境变量
+  if (typeof window !== 'undefined') {
+    return {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    }
   }
 
-  return { url, key }
+  // 服务器端环境
+  return {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  }
 }
 
 /**
@@ -19,13 +24,14 @@ function getSupabaseConfig() {
  * 用于客户端组件（use client）
  */
 export function createClient() {
-  const config = getSupabaseConfig()
+  const { url, key } = getSupabaseEnv()
 
-  if (!config) {
-    throw new Error('Supabase URL and API key are required')
+  if (!url || !key) {
+    console.warn('Supabase credentials not found')
+    return null
   }
 
-  return createBrowserClient(config.url, config.key)
+  return createBrowserClient(url, key)
 }
 
 /**
@@ -36,13 +42,13 @@ export function createServerSupabaseClient(cookieStore: {
   getAll: () => { name: string; value: string }[]
   set: (name: string, value: string, options?: any) => void
 }) {
-  const config = getSupabaseConfig()
+  const { url, key } = getSupabaseEnv()
 
-  if (!config) {
+  if (!url || !key) {
     throw new Error('Supabase URL and API key are required')
   }
 
-  return createServerClient(config.url, config.key, {
+  return createServerClient(url, key, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
