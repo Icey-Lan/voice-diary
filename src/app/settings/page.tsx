@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePreferencesStore } from "@/store/preferencesStore"
-import { DialogueFocus } from "@/types"
+import { useDiaryStore } from "@/store/diaryStore"
+import { DialogueFocus, Diary } from "@/types"
 
 const FOCUS_OPTIONS = [
   { value: "event", label: "记录事件" },
@@ -12,16 +12,19 @@ const FOCUS_OPTIONS = [
   { value: "all", label: "全面回顾" },
 ] as const
 
-export default function SettingsPage() {
-  const { dialogueFocus, voiceEnabled, ttsSpeed, setPreferences, apiKeys, setApiKey } = usePreferencesStore()
-  const [apiKeyInput, setApiKeyInput] = useState({ zhipu: apiKeys.zhipu, deepseek: apiKeys.deepseek })
-  const [showApiKeys, setShowApiKeys] = useState(false)
+// 计算总字数（统计中文字符）
+function calculateTotalWords(diaries: Diary[]): number {
+  return diaries.reduce((sum, diary) => {
+    // 统计中文字符数，去除空格、标点符号和表情符号
+    const wordCount = diary.content.replace(/[\s\p{P}\p{S}]/gu, '').length
+    return sum + wordCount
+  }, 0)
+}
 
-  const handleSaveApiKeys = () => {
-    setApiKey("zhipu", apiKeyInput.zhipu)
-    setApiKey("deepseek", apiKeyInput.deepseek)
-    alert("API Keys 已保存")
-  }
+export default function SettingsPage() {
+  const { dialogueFocus, voiceEnabled, ttsSpeed, setPreferences } = usePreferencesStore()
+  const { diaries } = useDiaryStore()
+  const totalWords = calculateTotalWords(diaries)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -116,60 +119,29 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* API 设置 */}
+          {/* 记录统计 */}
           <section className="bg-white rounded-2xl p-6 card-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[#2c2416]">
-                API 配置
-              </h2>
-              <button
-                onClick={() => setShowApiKeys(!showApiKeys)}
-                className="text-sm text-[#9caf88] hover:text-[#7a8f6d] transition-colors"
-              >
-                {showApiKeys ? "隐藏" : "显示"}
-              </button>
-            </div>
-
-            {showApiKeys ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#5c4a32] mb-2">
-                    智谱 GLM API Key
-                  </label>
-                  <input
-                    type="password"
-                    value={apiKeyInput.zhipu}
-                    onChange={(e) => setApiKeyInput({ ...apiKeyInput, zhipu: e.target.value })}
-                    placeholder="输入智谱 GLM API Key"
-                    className="w-full px-4 py-2 rounded-lg border border-[#c4a77d]/30 bg-[#f4f1ea] text-[#2c2416] focus:outline-none focus:ring-2 focus:ring-[#9caf88]/50"
-                  />
+            <h2 className="text-lg font-semibold text-[#2c2416] mb-4">
+              记录统计
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-[#f4f1ea] rounded-xl">
+                <div className="text-3xl font-bold text-[#9caf88]">
+                  {diaries.length}
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#5c4a32] mb-2">
-                    DeepSeek API Key
-                  </label>
-                  <input
-                    type="password"
-                    value={apiKeyInput.deepseek}
-                    onChange={(e) => setApiKeyInput({ ...apiKeyInput, deepseek: e.target.value })}
-                    placeholder="输入 DeepSeek API Key"
-                    className="w-full px-4 py-2 rounded-lg border border-[#c4a77d]/30 bg-[#f4f1ea] text-[#2c2416] focus:outline-none focus:ring-2 focus:ring-[#9caf88]/50"
-                  />
+                <div className="text-sm text-[#5c4a32]/70 mt-1">
+                  已记录天数
                 </div>
-
-                <button
-                  onClick={handleSaveApiKeys}
-                  className="w-full btn-retro py-2"
-                >
-                  保存 API Keys
-                </button>
               </div>
-            ) : (
-              <p className="text-sm text-[#5c4a32]/70">
-                配置 AI 服务所需的 API Keys
-              </p>
-            )}
+              <div className="text-center p-4 bg-[#f4f1ea] rounded-xl">
+                <div className="text-3xl font-bold text-[#9caf88]">
+                  {totalWords}
+                </div>
+                <div className="text-sm text-[#5c4a32]/70 mt-1">
+                  总字数
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* 关于 */}
