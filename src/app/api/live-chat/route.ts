@@ -2,10 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI, Modality } from '@google/genai'
 import { getChatPrompt } from '@/lib/prompts'
 
-const MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025'
+const MODEL = 'gemini-2.5-flash-native-audio-dialog'
+
+interface SessionData {
+  session: any
+  config: any
+  lastActivity: number
+  userTranscript: string
+  textResponse: string
+  audioResponse: string | null
+}
 
 // 用于存储活动的会话
-const activeSessions = new Map<string, any>()
+const activeSessions = new Map<string, SessionData>()
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,7 +59,10 @@ export async function POST(request: NextRequest) {
         activeSessions.set(newSessionId, {
           session: liveSession,
           config,
-          responseQueue: [] as any[],
+          lastActivity: Date.now(),
+          userTranscript: '',
+          textResponse: '',
+          audioResponse: null,
         })
 
         return NextResponse.json({
@@ -70,6 +82,9 @@ export async function POST(request: NextRequest) {
 
         const { session } = sessionData
 
+        // 更新活动时间
+        sessionData.lastActivity = Date.now()
+
         // 发送音频数据
         if (audioData) {
           await session.sendRealtimeInput({
@@ -82,6 +97,7 @@ export async function POST(request: NextRequest) {
 
         // 等待响应
         const responses: any[] = []
+        let userTranscript: string | null = null
         let audioResponse: string | null = null
         let textResponse: string | null = null
 
@@ -91,6 +107,16 @@ export async function POST(request: NextRequest) {
           for await (const response of turn) {
             responses.push(response)
 
+            // 提取用户转录文本
+            if (response.serverContent?.userTurn?.parts) {
+              for (const part of response.serverContent.userTurn.parts) {
+                if (part.text) {
+                  userTranscript = part.text
+                }
+              }
+            }
+
+            // 提取 AI 回复
             if (response.serverContent?.modelTurn?.parts) {
               for (const part of response.serverContent.modelTurn.parts) {
                 if (part.inlineData?.data) {
@@ -108,8 +134,14 @@ export async function POST(request: NextRequest) {
           console.error('Error receiving response:', error)
         }
 
+        // 更新会话数据
+        if (userTranscript) sessionData.userTranscript = userTranscript
+        if (textResponse) sessionData.textResponse = textResponse
+        if (audioResponse) sessionData.audioResponse = audioResponse
+
         return NextResponse.json({
           status: 'success',
+          userTranscript,
           audioResponse,
           textResponse,
           responses,

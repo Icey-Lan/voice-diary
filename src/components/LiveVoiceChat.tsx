@@ -9,7 +9,15 @@ interface LiveVoiceChatProps {
   onSessionEnd: () => void
 }
 
+interface Message {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProps) {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [hasStarted, setHasStarted] = useState(false)
+
   const {
     isConnected,
     isListening,
@@ -26,15 +34,18 @@ export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProp
     },
     onTextReceived: (text) => {
       // 添加 AI 回复到消息列表
-      addMessage({ role: "assistant", content: text })
+      setMessages((prev) => [...prev, { role: "assistant", content: text }])
+    },
+    onUserTranscript: (text) => {
+      // 添加用户转录文本到消息列表
+      setMessages((prev) => [...prev, { role: "user", content: text }])
     },
     onError: (err) => {
       console.error("Live chat error:", err)
     },
   })
 
-  const { addMessage, startNewSession, endSession } = useConversationStore()
-  const [hasStarted, setHasStarted] = useState(false)
+  const { startNewSession, endSession } = useConversationStore()
 
   // 初始化会话
   useEffect(() => {
@@ -76,6 +87,9 @@ export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProp
   }
 
   if (error) {
+    const isPermissionError = error.includes('Permission') || error.includes('NotAllowed')
+    const isDeviceNotFoundError = error.includes('NotFound') || error.includes('device')
+
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-6 max-w-md">
@@ -85,8 +99,16 @@ export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProp
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-[#2c2416] mb-2">连接失败</h3>
-            <p className="text-sm text-[#5c4a32] mb-4">{error}</p>
+            <h3 className="text-lg font-semibold text-[#2c2416] mb-2">
+              {isPermissionError ? '需要麦克风权限' : isDeviceNotFoundError ? '未检测到麦克风' : '连接失败'}
+            </h3>
+            <p className="text-sm text-[#5c4a32] mb-4">
+              {isPermissionError
+                ? '请在浏览器设置中允许访问麦克风，然后重试。'
+                : isDeviceNotFoundError
+                ? '请确保您的设备已连接麦克风，然后重试。'
+                : error}
+            </p>
             <button
               onClick={handleStart}
               className="px-6 py-2 bg-[#9caf88] text-white rounded-full hover:bg-[#7a8f6d] transition-colors"
@@ -154,8 +176,30 @@ export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProp
         </div>
       </header>
 
+      {/* 消息列表 */}
+      {messages.length > 0 && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-2xl mx-auto w-full">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  message.role === 'user'
+                    ? 'bg-[#9caf88] text-white rounded-br-sm'
+                    : 'bg-white text-[#2c2416] rounded-bl-sm shadow-sm border border-[#c4a77d]/30'
+                }`}
+              >
+                <p className="text-sm leading-relaxed">{message.content}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 状态指示器 */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
+      <div className={`flex flex-col items-center justify-center p-8 ${messages.length > 0 ? 'flex-none' : 'flex-1'}`}>
         {/* 波形动画 */}
         <div className="relative w-40 h-40 mb-8">
           {/* 外圈 */}

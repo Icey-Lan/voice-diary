@@ -11,6 +11,7 @@ interface UseGeminiLiveOptions {
   focus?: string
   onAudioReceived?: (audioData: string) => void
   onTextReceived?: (text: string) => void
+  onUserTranscript?: (text: string) => void
   onError?: (error: Error) => void
 }
 
@@ -30,6 +31,7 @@ export function useGeminiLive({
   focus = 'all',
   onAudioReceived,
   onTextReceived,
+  onUserTranscript,
   onError,
 }: UseGeminiLiveOptions): UseGeminiLiveReturn {
   const [isConnected, setIsConnected] = useState(false)
@@ -167,7 +169,12 @@ export function useGeminiLive({
 
         const data = await response.json()
 
-        // 处理响应
+        // 处理用户转录文本
+        if (data.userTranscript) {
+          onUserTranscript?.(data.userTranscript)
+        }
+
+        // 处理音频响应
         if (data.audioResponse) {
           audioQueueRef.current.push(data.audioResponse)
           onAudioReceived?.(data.audioResponse)
@@ -187,23 +194,33 @@ export function useGeminiLive({
         throw error
       }
     },
-    [onAudioReceived, onTextReceived, onError, playAudioQueue]
+    [onAudioReceived, onTextReceived, onUserTranscript, onError, playAudioQueue]
   )
 
   // 开始录音
   const startListening = useCallback(async () => {
     try {
+      // 使用更灵活的音频约束
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-        },
+        audio: true,
       })
 
-      // 创建 MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus',
-      })
+      // 创建 MediaRecorder，使用支持的 MIME 类型
+      let mimeType = 'audio/webm;codecs=opus'
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        // Fallback to other supported types
+        const types = [
+          'audio/webm',
+          'audio/ogg;codecs=opus',
+          'audio/mp4',
+          'audio/mpeg',
+        ]
+        mimeType = types.find(type => MediaRecorder.isTypeSupported(type)) || ''
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? {
+        mimeType,
+      } : undefined)
 
       mediaRecorderRef.current = mediaRecorder
 
