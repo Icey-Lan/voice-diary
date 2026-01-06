@@ -8,13 +8,42 @@ interface VoiceRecorderProps {
   onRecordingChange: (recording: boolean) => void
 }
 
+// Web Speech API 类型定义
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+
+// 扩展全局 Window 接口
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognition;
+    webkitSpeechRecognition?: new () => SpeechRecognition;
+  }
+}
+
 export function VoiceRecorder({ onTranscript, isRecording, onRecordingChange }: VoiceRecorderProps) {
   const [isProcessing, setIsProcessing] = useState(false)
-  const recognitionRef = useRef<any>(null)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
 
   const startRecording = () => {
     // 检查浏览器支持
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
     if (!SpeechRecognition) {
       alert("您的浏览器不支持语音识别，请使用 Chrome 或 Safari 浏览器")
@@ -34,7 +63,7 @@ export function VoiceRecorder({ onTranscript, isRecording, onRecordingChange }: 
         setIsProcessing(false)
       }
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const results = event.results
         if (results.length > 0) {
           const transcript = results[results.length - 1][0].transcript
@@ -43,7 +72,7 @@ export function VoiceRecorder({ onTranscript, isRecording, onRecordingChange }: 
         }
       }
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error("Speech recognition error:", event.error)
         setIsProcessing(false)
         onRecordingChange(false)

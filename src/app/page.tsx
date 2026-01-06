@@ -59,7 +59,7 @@ export default function Home() {
                 上次记录：3 天前
               </p>
               <div className="text-sm text-[#5c4a32]">
-                点击"开始写日记"记录今天的点滴 ✨
+                点击&quot;开始写日记&quot;记录今天的点滴 ✨
               </div>
             </div>
           </div>

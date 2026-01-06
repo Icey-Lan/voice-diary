@@ -27,8 +27,27 @@ export function validateAIConfig() {
   return missing.length === 0
 }
 
+// API请求数据类型
+interface ZhipuRequestData {
+  model?: string;
+  messages?: Array<{ role: string; content: string }>;
+  temperature?: number;
+  max_tokens?: number;
+  stream?: boolean;
+  [key: string]: unknown;
+}
+
+interface DeepSeekRequestData {
+  model?: string;
+  messages?: Array<{ role: string; content: string }>;
+  temperature?: number;
+  max_tokens?: number;
+  stream?: boolean;
+  [key: string]: unknown;
+}
+
 // 智谱 GLM API 调用
-export async function callZhipuAPI(endpoint: string, data: any) {
+export async function callZhipuAPI(endpoint: string, data: ZhipuRequestData) {
   const response = await fetch(`${AI_CONFIG.zhipu.baseURL}${endpoint}`, {
     method: 'POST',
     headers: {
@@ -47,7 +66,7 @@ export async function callZhipuAPI(endpoint: string, data: any) {
 }
 
 // DeepSeek API 调用
-export async function callDeepSeekAPI(endpoint: string, data: any) {
+export async function callDeepSeekAPI(endpoint: string, data: DeepSeekRequestData) {
   const response = await fetch(`${AI_CONFIG.deepseek.baseURL}${endpoint}`, {
     method: 'POST',
     headers: {

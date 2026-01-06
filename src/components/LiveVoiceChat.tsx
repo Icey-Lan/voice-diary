@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useGeminiLive } from "@/hooks/useGeminiLive"
 import { useConversationStore } from "@/store/conversationStore"
-import { usePreferencesStore } from "@/store/preferencesStore"
 
 interface LiveVoiceChatProps {
   focus?: string
@@ -22,7 +21,7 @@ export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProp
     error,
   } = useGeminiLive({
     focus,
-    onAudioReceived: (audioData) => {
+    onAudioReceived: () => {
       // 音频会自动播放
     },
     onTextReceived: (text) => {
@@ -35,9 +34,7 @@ export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProp
   })
 
   const { addMessage, startNewSession, endSession } = useConversationStore()
-  const { dialogueFocus } = usePreferencesStore()
   const [hasStarted, setHasStarted] = useState(false)
-  const [transcript, setTranscript] = useState("")
 
   // 初始化会话
   useEffect(() => {
@@ -48,7 +45,7 @@ export function LiveVoiceChat({ focus = "all", onSessionEnd }: LiveVoiceChatProp
         disconnect()
       }
     }
-  }, [])
+  }, [startNewSession, endSession, isConnected, disconnect])
 
   // 连接到 Live API
   const handleStart = async () => {

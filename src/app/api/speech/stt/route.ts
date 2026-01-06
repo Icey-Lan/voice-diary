@@ -15,12 +15,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 智谱 ASR API 需要使用 FormData 方式上传
+    // 智谱 GLM-4.7 ASR API 需要使用 FormData 方式上传
     const apiFormData = new FormData()
     apiFormData.append('file', audioFile)
-    apiFormData.append('model', 'glm-asr')
+    apiFormData.append('model', 'glm-4.7')
 
-    // 调用智谱 GLM-ASR API
+    // 调用智谱 GLM-4.7 ASR API
     const response = await fetch('https://open.bigmodel.cn/api/paas/v4/audio/transcriptions', {
       method: 'POST',
       headers: {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     const result = await response.json()
 
-    // 智谱 ASR 返回格式: { text: "识别的文本" }
+    // 智谱 GLM-4.7 ASR 返回格式: { text: "识别的文本" }
     return NextResponse.json({
       text: result.text || '',
     })

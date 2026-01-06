@@ -1,5 +1,12 @@
 import { useRef, useState, useCallback } from 'react'
 
+// 扩展全局 Window 接口
+declare global {
+  interface Window {
+    webkitAudioContext?: new (options?: AudioContextOptions) => AudioContext;
+  }
+}
+
 interface UseGeminiLiveOptions {
   focus?: string
   onAudioReceived?: (audioData: string) => void
@@ -108,7 +115,11 @@ export function useGeminiLive({
 
         // 创建音频上下文并播放
         if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext
+          if (!AudioContextClass) {
+            throw new Error('AudioContext not supported in this browser')
+          }
+          audioContextRef.current = new AudioContextClass({
             sampleRate: 24000,
           })
         }
