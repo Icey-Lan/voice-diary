@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { Icon } from "@/components/icons/Icon"
 import { usePreferencesStore } from "@/store/preferencesStore"
 import { useDiaryStore } from "@/store/diaryStore"
 import { DialogueFocus, Diary } from "@/types"
@@ -27,19 +28,17 @@ export default function SettingsPage() {
   const totalWords = calculateTotalWords(diaries)
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       {/* 顶部导航 */}
-      <header className="border-b border-[#c4a77d]/30 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-slate-200/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
           <Link
             href="/"
-            className="text-[#5c4a32] hover:text-[#8b7355] transition-colors"
+            className="text-slate-600 hover:text-indigo-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <Icon name="chevron-left" size={24} />
           </Link>
-          <h1 className="text-lg font-semibold text-[#2c2416]">
+          <h1 className="text-lg font-semibold text-slate-800">
             设置
           </h1>
         </div>
@@ -49,19 +48,19 @@ export default function SettingsPage() {
       <main className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* 对话偏好 */}
-          <section className="bg-white rounded-2xl p-6 card-shadow">
-            <h2 className="text-lg font-semibold text-[#2c2416] mb-4">
+          <section className="card-flat p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">
               对话偏好
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#5c4a32] mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   默认对话焦点
                 </label>
                 <select
                   value={dialogueFocus}
                   onChange={(e) => setPreferences({ dialogueFocus: e.target.value as DialogueFocus })}
-                  className="w-full px-4 py-2 rounded-lg border border-[#c4a77d]/30 bg-[#f4f1ea] text-[#2c2416] focus:outline-none focus:ring-2 focus:ring-[#9caf88]/50"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 >
                   {FOCUS_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -74,22 +73,22 @@ export default function SettingsPage() {
           </section>
 
           {/* 语音设置 */}
-          <section className="bg-white rounded-2xl p-6 card-shadow">
-            <h2 className="text-lg font-semibold text-[#2c2416] mb-4">
+          <section className="card-flat p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">
               语音设置
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-[#2c2416]">AI 语音朗读</div>
-                  <div className="text-sm text-[#5c4a32]/70">
+                  <div className="font-medium text-slate-800">AI 语音朗读</div>
+                  <div className="text-sm text-slate-500">
                     AI 回复时是否朗读声音
                   </div>
                 </div>
                 <button
                   onClick={() => setPreferences({ voiceEnabled: !voiceEnabled })}
                   className={`w-12 h-6 rounded-full transition-colors ${
-                    voiceEnabled ? "bg-[#9caf88]" : "bg-[#c4a77d]/30"
+                    voiceEnabled ? "bg-indigo-500" : "bg-slate-300"
                   }`}
                 >
                   <div
@@ -102,7 +101,7 @@ export default function SettingsPage() {
 
               {voiceEnabled && (
                 <div>
-                  <label className="block text-sm font-medium text-[#5c4a32] mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     朗读速度: {ttsSpeed.toFixed(1)}x
                   </label>
                   <input
@@ -112,7 +111,7 @@ export default function SettingsPage() {
                     step="0.1"
                     value={ttsSpeed}
                     onChange={(e) => setPreferences({ ttsSpeed: parseFloat(e.target.value) })}
-                    className="w-full"
+                    className="w-full accent-indigo-500"
                   />
                 </div>
               )}
@@ -120,24 +119,34 @@ export default function SettingsPage() {
           </section>
 
           {/* 记录统计 */}
-          <section className="bg-white rounded-2xl p-6 card-shadow">
-            <h2 className="text-lg font-semibold text-[#2c2416] mb-4">
+          <section className="card-flat p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">
               记录统计
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-[#f4f1ea] rounded-xl">
-                <div className="text-3xl font-bold text-[#9caf88]">
+              <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                <div className="flex justify-center mb-2">
+                  <div className="icon-soft-primary">
+                    <Icon name="calendar" size={20} className="text-white" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-indigo-600">
                   {diaries.length}
                 </div>
-                <div className="text-sm text-[#5c4a32]/70 mt-1">
+                <div className="text-sm text-slate-600 mt-1">
                   已记录天数
                 </div>
               </div>
-              <div className="text-center p-4 bg-[#f4f1ea] rounded-xl">
-                <div className="text-3xl font-bold text-[#9caf88]">
+              <div className="text-center p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+                <div className="flex justify-center mb-2">
+                  <div className="icon-soft-accent">
+                    <Icon name="document" size={20} className="text-white" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-amber-600">
                   {totalWords}
                 </div>
-                <div className="text-sm text-[#5c4a32]/70 mt-1">
+                <div className="text-sm text-slate-600 mt-1">
                   总字数
                 </div>
               </div>
@@ -145,9 +154,9 @@ export default function SettingsPage() {
           </section>
 
           {/* 关于 */}
-          <section className="text-center py-8 text-sm text-[#5c4a32]/60">
+          <section className="text-center py-8 text-sm text-slate-400">
             <p>AI 语音日记本 v1.0</p>
-            <p className="mt-1">温暖的 AI 日记伙伴 🌻</p>
+            <p className="mt-1">温暖的 AI 日记伙伴</p>
           </section>
         </div>
       </main>

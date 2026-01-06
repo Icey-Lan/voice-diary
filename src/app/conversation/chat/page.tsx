@@ -3,12 +3,14 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { Icon } from "@/components/icons/Icon"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import { ChatMessage } from "@/components/ChatMessage"
 import { LiveVoiceChat } from "@/components/LiveVoiceChat"
 import { useConversationStore } from "@/store/conversationStore"
 import { usePreferencesStore } from "@/store/preferencesStore"
 import { getGreetingMessage } from "@/lib/prompts"
+import { DialogueFocus } from "@/types"
 
 type ChatMode = "classic" | "live"
 
@@ -36,13 +38,14 @@ export default function ChatPage() {
 
     // 从 localStorage 获取焦点
     const savedFocus = localStorage.getItem("diaryFocus")
-    const greeting = getGreetingMessage((savedFocus || "all") as any)
+    const greeting = getGreetingMessage((savedFocus || "all") as DialogueFocus)
     addMessage({ role: "assistant", content: greeting })
     setIsLoading(false)
 
     return () => {
       endSession()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 自动滚动到底部
@@ -131,10 +134,10 @@ export default function ChatPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#9caf88] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#5c4a32]">加载中...</p>
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600">加载中...</p>
         </div>
       </div>
     )
@@ -147,35 +150,31 @@ export default function ChatPage() {
 
   // 经典聊天模式
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       {/* 顶部导航 */}
-      <header className="border-b border-[#c4a77d]/30 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-slate-200/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-[#5c4a32] hover:text-[#8b7355] transition-colors"
+            className="text-slate-600 hover:text-indigo-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <Icon name="chevron-left" size={24} />
           </Link>
           <div className="text-center">
-            <h1 className="text-lg font-semibold text-[#2c2416]">对话中</h1>
-            <p className="text-xs text-[#5c4a32]/60">和 AI 聊聊今天</p>
+            <h1 className="text-lg font-semibold text-slate-800">对话中</h1>
+            <p className="text-xs text-slate-500">和 AI 聊聊今天</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setChatMode("live")}
-              className="text-sm text-[#5c4a32] hover:text-[#9caf88] font-medium transition-colors"
+              className="text-slate-600 hover:text-indigo-600 font-medium transition-colors p-1"
               title="切换到实时语音对话"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
+              <Icon name="mic" size={20} />
             </button>
             <button
               onClick={handleFinish}
-              className="text-sm text-[#9caf88] hover:text-[#7a8f6d] font-medium transition-colors"
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors px-3 py-1"
             >
               完成
             </button>
@@ -191,13 +190,15 @@ export default function ChatPage() {
 
         {isGenerating && (
           <div className="flex justify-start fade-in">
-            <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-md">
+            <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-slate-200">
               <div className="flex items-center gap-2">
-                <span>🌻</span>
+                <div className="icon-soft-primary">
+                  <Icon name="sparkles" size={16} className="text-white" />
+                </div>
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-[#9caf88] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <div className="w-2 h-2 bg-[#9caf88] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <div className="w-2 h-2 bg-[#9caf88] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               </div>
             </div>
@@ -206,7 +207,7 @@ export default function ChatPage() {
       </div>
 
       {/* 输入区域 */}
-      <div className="border-t border-[#c4a77d]/30 bg-white/50 backdrop-blur-sm p-4 sticky bottom-0">
+      <div className="border-t border-slate-200/60 bg-white/70 backdrop-blur-sm p-4 sticky bottom-0">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-end gap-3">
             {/* 文本输入 */}
@@ -222,7 +223,7 @@ export default function ChatPage() {
                 }}
                 placeholder="说点什么..."
                 rows={1}
-                className="w-full px-4 py-3 rounded-2xl bg-white border-2 border-[#c4a77d]/30 focus:border-[#9caf88] focus:outline-none resize-none text-[#2c2416] placeholder:text-[#5c4a32]/50"
+                className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none resize-none text-slate-800 placeholder:text-slate-400 transition-all"
                 style={{ minHeight: "48px", maxHeight: "120px" }}
               />
             </div>
@@ -238,15 +239,13 @@ export default function ChatPage() {
             <button
               onClick={handleSend}
               disabled={!inputText.trim() || isGenerating}
-              className="w-12 h-12 rounded-full bg-[#9caf88] text-white flex items-center justify-center hover:bg-[#7a8f6d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center hover:shadow-lg hover:shadow-indigo-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
+              <Icon name="send" size={20} />
             </button>
           </div>
 
-          <p className="text-xs text-center text-[#5c4a32]/50 mt-3">
+          <p className="text-xs text-center text-slate-400 mt-3">
             按住麦克风说话，或输入文字后点击发送
           </p>
         </div>

@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Diary } from "@/types"
+import { Icon, iconMap } from "@/components/icons/Icon"
+import { Diary, MOOD_TAGS, WEATHER_OPTIONS } from "@/types"
 
 // 模拟数据 - 后续从数据库获取
 const mockDiaries: Diary[] = [
@@ -23,21 +24,29 @@ const mockDiaries: Diary[] = [
   }
 ]
 
+// 获取天气图标信息
+function getWeatherInfo(weather: string) {
+  return WEATHER_OPTIONS.find(w => w.value === weather) || WEATHER_OPTIONS[0]
+}
+
+// 获取心情标签信息
+function getMoodInfo(mood: string) {
+  return MOOD_TAGS.find(m => m.value === mood)
+}
+
 export default function GalleryPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       {/* 顶部导航 */}
-      <header className="border-b border-[#c4a77d]/30 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-slate-200/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
           <Link
             href="/"
-            className="text-[#5c4a32] hover:text-[#8b7355] transition-colors"
+            className="text-slate-600 hover:text-indigo-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <Icon name="chevron-left" size={24} />
           </Link>
-          <h1 className="text-lg font-semibold text-[#2c2416]">
+          <h1 className="text-lg font-semibold text-slate-800">
             日记回廊
           </h1>
         </div>
@@ -49,61 +58,79 @@ export default function GalleryPage() {
           {/* 空状态或日记列表 */}
           {mockDiaries.length === 0 ? (
             <div className="text-center py-16 space-y-4">
-              <div className="text-5xl">📔</div>
-              <h2 className="text-xl font-semibold text-[#2c2416]">
+              <div className="flex justify-center">
+                <div className="icon-soft-secondary">
+                  <Icon name="diary" size={40} className="text-white" />
+                </div>
+              </div>
+              <h2 className="text-xl font-semibold text-slate-800">
                 还没有日记
               </h2>
-              <p className="text-[#5c4a32]">
+              <p className="text-slate-600">
                 开始记录第一篇日记吧
               </p>
               <Link
                 href="/conversation"
-                className="inline-block btn-retro px-6 py-2"
+                className="inline-block btn-primary px-6 py-2"
               >
                 开始写日记
               </Link>
             </div>
           ) : (
             <div className="space-y-6">
-              {mockDiaries.map((diary, index) => (
-                <div
-                  key={diary.id}
-                  className="paper-texture bg-white rounded-2xl p-6 card-shadow fade-in"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {/* 卡片头部 */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3 text-sm text-[#5c4a32]/70">
-                      <span>{diary.date}</span>
-                      <span>·</span>
-                      <span>{diary.weather}</span>
+              {mockDiaries.map((diary, index) => {
+                const weatherInfo = getWeatherInfo(diary.weather)
+                return (
+                  <div
+                    key={diary.id}
+                    className="card-flat p-6 fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    {/* 卡片头部 */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3 text-sm text-slate-500">
+                        <span>{diary.date}</span>
+                        <span className="text-slate-300">·</span>
+                        <div className="flex items-center gap-1">
+                          <Icon
+                            name={weatherInfo.icon as keyof typeof iconMap}
+                            size={14}
+                            style={{ color: weatherInfo.color }}
+                          />
+                          <span>{diary.weather}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 flex-wrap justify-end">
+                        {diary.moodTags.map((tag) => {
+                          const moodInfo = getMoodInfo(tag)
+                          return moodInfo ? (
+                            <div
+                              key={tag}
+                              className="flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-600"
+                            >
+                              <Icon name={moodInfo.icon as keyof typeof iconMap} size={10} style={{ color: moodInfo.color }} />
+                              <span>{tag}</span>
+                            </div>
+                          ) : null
+                        })}
+                      </div>
                     </div>
-                    <div className="flex gap-1">
-                      {diary.moodTags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 text-xs rounded-full bg-[#f4f1ea] text-[#5c4a32]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+
+                    {/* 日记内容 */}
+                    <div className="text-slate-800 leading-relaxed">
+                      {diary.content}
+                    </div>
+
+                    {/* 卡片装饰 */}
+                    <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-400">
+                      <span>珍藏于此</span>
+                      <button className="hover:text-indigo-600 transition-colors font-medium">
+                        查看详情
+                      </button>
                     </div>
                   </div>
-
-                  {/* 日记内容 */}
-                  <div className="handwriting text-[#2c2416] leading-relaxed">
-                    {diary.content}
-                  </div>
-
-                  {/* 卡片装饰 */}
-                  <div className="mt-4 pt-4 border-t border-[#c4a77d]/20 flex items-center justify-between text-xs text-[#5c4a32]/50">
-                    <span>✨ 珍藏于此</span>
-                    <button className="hover:text-[#8b7355] transition-colors">
-                      查看详情
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

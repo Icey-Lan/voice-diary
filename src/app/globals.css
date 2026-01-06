@@ -1,144 +1,162 @@
 /* Google Fonts 导入 - 必须在最前面 */
-@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Inter:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  /* 复古手帐配色方案 */
-  --color-paper: #f4f1ea;
-  --color-paper-dark: #e8e4db;
-  --color-ink: #2c2416;
-  --color-ink-light: #5c4a32;
-  --color-brown: #8b7355;
-  --color-brown-light: #c4a77d;
-  --color-sage: #9caf88;
-  --color-sage-dark: #7a8f6d;
-  --color-dusty-rose: #d4a5a5;
-  --color-dusty-blue: #a5b4c4;
-  --color-gold: #c9a962;
+  /* Figma风格活力渐变配色 */
+  --color-primary: #6366f1;
+  --color-primary-light: #818cf8;
+  --color-primary-dark: #4f46e5;
+  --color-secondary: #ec4899;
+  --color-secondary-dark: #db2777;
+  --color-accent: #f59e0b;
+  --color-accent-light: #fbbf24;
+
+  /* 中性色 */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-surface: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+
+  /* 文字色 */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-text-tertiary: #94a3b8;
 
   /* 字体 */
   --font-handwriting: "Ma Shan Zheng", cursive;
-  --font-serif: "Noto Serif SC", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  /* 渐变色 */
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  --gradient-card: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  --gradient-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 
 /* 基础样式 */
 :root {
-  --background: var(--color-paper);
-  --foreground: var(--color-ink);
+  --background: var(--color-bg);
+  --foreground: var(--color-text-primary);
 }
 
 body {
-  font-family: var(--font-serif);
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(139, 115, 85, 0.03) 2px,
-      rgba(139, 115, 85, 0.03) 4px
-    );
+  font-family: var(--font-sans);
+  background: var(--gradient-bg);
+  color: var(--color-text-primary);
   min-height: 100vh;
 }
 
-/* 纸张纹理效果 */
-.paper-texture {
-  position: relative;
-}
-
-.paper-texture::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-/* 和纸胶带效果 */
-.washi-tape {
-  position: relative;
-}
-
-.washi-tape::before {
-  content: '';
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-2deg);
-  width: 80px;
-  height: 24px;
-  background: linear-gradient(
-    135deg,
-    var(--color-sage) 0%,
-    var(--color-sage-dark) 50%,
-    var(--color-sage) 100%
-  );
-  opacity: 0.7;
-  border-radius: 2px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-/* 邮票边框效果 */
-.stamp-border {
-  border: 3px dashed var(--color-brown-light);
-  border-radius: 4px;
-  padding: 1rem;
-  position: relative;
-}
-
-.stamp-border::after {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border: 1px solid var(--color-brown-light);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-/* 手写字体文本 */
+/* 手写字体文本 - 保留用于标题和特殊强调 */
 .handwriting {
   font-family: var(--font-handwriting);
 }
 
-/* 墨水扩散动画 */
-@keyframes inkSpread {
+/* 主按钮样式 - 现代渐变 */
+.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+/* 次要按钮样式 */
+.btn-secondary {
+  background: white;
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-secondary);
+}
+
+/* 卡片样式 */
+.card-flat {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.card-flat:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.card-shadow {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* 图标背景样式 */
+.icon-soft {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border-radius: 12px;
+  padding: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-soft-secondary {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(244, 63, 94, 0.1) 100%);
+  border-radius: 12px;
+  padding: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-soft-accent {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 191, 36, 0.1) 100%);
+  border-radius: 12px;
+  padding: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 录音按钮动画 */
+@keyframes recording {
   0% {
-    filter: blur(0px);
-    opacity: 0.8;
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7);
   }
-  50% {
-    filter: blur(1px);
-    opacity: 0.6;
+  70% {
+    box-shadow: 0 0 0 15px rgba(236, 72, 153, 0);
   }
   100% {
-    filter: blur(0px);
-    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
   }
 }
 
-.ink-spread {
-  animation: inkSpread 1.5s ease-out;
-}
-
-/* 打字机效果 */
-@keyframes typewriter {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-.typewriter {
-  overflow: hidden;
-  white-space: nowrap;
-  animation: typewriter 2s steps(40, end);
+.recording-pulse {
+  animation: recording 1.5s infinite;
 }
 
 /* 淡入动画 */
@@ -154,7 +172,7 @@ body {
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 /* 脉冲动画 */
@@ -179,79 +197,21 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-paper-dark);
+  background: var(--color-bg-secondary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-brown);
+  background: var(--color-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ink-light);
-}
-
-/* 按钮样式 */
-.btn-retro {
-  background: linear-gradient(
-    135deg,
-    var(--color-brown) 0%,
-    var(--color-brown-light) 100%
-  );
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-family: var(--font-serif);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow:
-    0 2px 8px rgba(44, 36, 22, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.btn-retro:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 4px 12px rgba(44, 36, 22, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.btn-retro:active {
-  transform: translateY(0);
-  box-shadow:
-    0 2px 4px rgba(44, 36, 22, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-/* 卡片阴影 */
-.card-shadow {
-  box-shadow:
-    0 2px 8px rgba(44, 36, 22, 0.08),
-    0 8px 24px rgba(44, 36, 22, 0.12);
-}
-
-/* 录音按钮动画 */
-@keyframes recording {
-  0% {
-    box-shadow: 0 0 0 0 rgba(212, 165, 165, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 15px rgba(212, 165, 165, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(212, 165, 165, 0);
-  }
-}
-
-.recording-pulse {
-  animation: recording 1.5s infinite;
+  background: var(--color-text-tertiary);
 }
 
 /* 文本选择样式 */
 ::selection {
-  background: var(--color-dusty-rose);
-  color: var(--color-ink);
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--color-text-primary);
 }

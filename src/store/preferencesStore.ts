@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { UserPreferences, DialogueFocus } from '@/types'
+import { UserPreferences } from '@/types'
 
 interface PreferencesStore extends UserPreferences {
   // API Keys

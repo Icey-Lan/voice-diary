@@ -92,25 +92,25 @@ export interface ConversationSession {
 
 // 心情标签
 export const MOOD_TAGS = [
-  { value: '平静', emoji: '🍃' },
-  { value: '开心', emoji: '😊' },
-  { value: '忧郁', emoji: '🌧️' },
-  { value: '感激', emoji: '🙏' },
-  { value: '疲惫', emoji: '😴' },
-  { value: '期待', emoji: '✨' },
-  { value: '焦虑', emoji: '😰' },
-  { value: '满足', emoji: '😌' },
-  { value: '思考', emoji: '🤔' },
-  { value: '温暖', emoji: '🌻' },
+  { value: '平静', icon: 'leaf', color: '#10b981' },
+  { value: '开心', icon: 'sun', color: '#fbbf24' },
+  { value: '忧郁', icon: 'cloud-rain', color: '#64748b' },
+  { value: '感激', icon: 'heart', color: '#ec4899' },
+  { value: '疲惫', icon: 'moon', color: '#8b5cf6' },
+  { value: '期待', icon: 'sparkles', color: '#f59e0b' },
+  { value: '焦虑', icon: 'zap', color: '#ef4444' },
+  { value: '满足', icon: 'smile', color: '#6366f1' },
+  { value: '思考', icon: 'lightbulb', color: '#f59e0b' },
+  { value: '温暖', icon: 'sun', color: '#f97316' },
 ] as const
 
 // 天气选项
 export const WEATHER_OPTIONS = [
-  { value: '晴天', icon: '☀️' },
-  { value: '多云', icon: '⛅' },
-  { value: '阴天', icon: '☁️' },
-  { value: '小雨', icon: '🌧️' },
-  { value: '大雨', icon: '⛈️' },
-  { value: '雪', icon: '❄️' },
-  { value: '雾', icon: '🌫️' },
+  { value: '晴天', icon: 'sun', color: '#fbbf24' },
+  { value: '多云', icon: 'cloud-sun', color: '#94a3b8' },
+  { value: '阴天', icon: 'cloud', color: '#64748b' },
+  { value: '小雨', icon: 'cloud-drizzle', color: '#60a5fa' },
+  { value: '大雨', icon: 'cloud-rain', color: '#3b82f6' },
+  { value: '雪', icon: 'snowflake', color: '#a5b4fc' },
+  { value: '雾', icon: 'cloud-fog', color: '#94a3b8' },
 ] as const
