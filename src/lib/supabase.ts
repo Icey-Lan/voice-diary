@@ -1,15 +1,31 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
-import type { SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+/**
+ * 获取 Supabase 环境变量
+ */
+function getSupabaseConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) {
+    return null
+  }
+
+  return { url, key }
+}
 
 /**
  * 浏览器端 Supabase 客户端
  * 用于客户端组件（use client）
  */
 export function createClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  const config = getSupabaseConfig()
+
+  if (!config) {
+    throw new Error('Supabase URL and API key are required')
+  }
+
+  return createBrowserClient(config.url, config.key)
 }
 
 /**
@@ -20,7 +36,13 @@ export function createServerSupabaseClient(cookieStore: {
   getAll: () => { name: string; value: string }[]
   set: (name: string, value: string, options?: any) => void
 }) {
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  const config = getSupabaseConfig()
+
+  if (!config) {
+    throw new Error('Supabase URL and API key are required')
+  }
+
+  return createServerClient(config.url, config.key, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -37,6 +59,3 @@ export function createServerSupabaseClient(cookieStore: {
     },
   })
 }
-
-// 导出默认客户端（向后兼容）
-export const supabase = createClient()

@@ -34,22 +34,33 @@ export default function Home() {
 
   // 监听认证状态变化
   useEffect(() => {
-    const supabase = createClient()
+    let subscription = null
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email ?? null,
-        })
-      } else {
-        setUser(null)
+    try {
+      const supabase = createClient()
+      const {
+        data: { subscription: sub },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? null,
+          })
+        } else {
+          setUser(null)
+        }
+      })
+      subscription = sub
+    } catch (error) {
+      console.error("Error setting up auth listener:", error)
+      setIsLoading(false)
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe()
       }
-    })
-
-    return () => subscription.unsubscribe()
+    }
   }, [setUser])
 
   return (
