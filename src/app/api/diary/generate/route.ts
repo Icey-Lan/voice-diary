@@ -106,18 +106,53 @@ export async function POST(request: NextRequest) {
     let moodTags: string[] = ['平静']
     let content = generatedText
 
-    // 尝试解析格式化输出
+    // 尝试解析格式化输出（支持多种格式）
     const weatherMatch = generatedText.match(/weather:\s*(.+)/i)
     const moodMatch = generatedText.match(/mood:\s*\[(.+)\]/i)
-    const contentMatch = generatedText.match(/---\n([\s\S]+)$/)
+    const contentMatch = generatedText.match(/---\s*\nweather:.+?\nmood:\s*\[.+?\]\s*\n([\s\S]+?)\n---/i)
 
     if (weatherMatch) weather = weatherMatch[1].trim()
     if (moodMatch) {
       moodTags = moodMatch[1].split(',').map((t: string) => t.trim())
     }
+
     if (contentMatch) {
+      // 标准格式：提取两个 --- 之间的正文内容
       content = contentMatch[1].trim()
+    } else {
+      // 备用解析：尝试提取 weather 和 mood 之后的所有内容
+      const lines = generatedText.split('\n')
+      const contentLines: string[] = []
+      let foundMetadata = false
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        // 跳过分隔符和元数据行
+        if (line.trim() === '---' || line.match(/^weather:/i) || line.match(/^mood:/i)) {
+          foundMetadata = true
+          continue
+        }
+        // 收集元数据之后的内容
+        if (foundMetadata || (!foundMetadata && i > 0)) {
+          contentLines.push(line)
+        }
+      }
+
+      if (contentLines.length > 0) {
+        const parsedContent = contentLines.join('\n').trim()
+        // 确保解析出的内容不是元数据
+        if (parsedContent && !parsedContent.match(/^weather:/i) && !parsedContent.match(/^mood:/i)) {
+          content = parsedContent
+        }
+      }
     }
+
+    // 最终清理：确保 content 不包含 weather 和 mood 信息
+    content = content
+      .replace(/^weather:\s*.+$/im, '')
+      .replace(/^mood:\s*\[.+?\]$/im, '')
+      .replace(/^---\s*$/gm, '')
+      .trim()
 
     return NextResponse.json({
       weather,

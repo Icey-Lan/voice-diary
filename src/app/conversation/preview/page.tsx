@@ -75,6 +75,9 @@ export default function PreviewPage() {
       savedDiaries.unshift(generatedDiary)
       localStorage.setItem("diaries", JSON.stringify(savedDiaries))
 
+      // 触发自定义事件，通知其他页面更新
+      window.dispatchEvent(new Event("diariesUpdated"))
+
       // 清空当前会话
       useDiaryStore.getState().clearCurrentSession()
       useConversationStore.getState().clearMessages()

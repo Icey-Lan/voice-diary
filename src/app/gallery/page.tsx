@@ -1,28 +1,9 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Icon, iconMap } from "@/components/icons/Icon"
 import { Diary, MOOD_TAGS, WEATHER_OPTIONS } from "@/types"
-
-// 模拟数据 - 后续从数据库获取
-const mockDiaries: Diary[] = [
-  {
-    id: "1",
-    user_id: "local-user",
-    date: "2024-12-27",
-    weather: "晴天",
-    moodTags: ["平静", "温暖"],
-    content: "今天的阳光格外温柔，我坐在窗边，看着光线一点点移动，心里有种说不出的宁静...",
-    created_at: "2024-12-27T10:30:00Z"
-  },
-  {
-    id: "2",
-    user_id: "local-user",
-    date: "2024-12-26",
-    weather: "多云",
-    moodTags: ["思考", "期待"],
-    content: "和老朋友聊了很久，关于未来的对话让我重新审视了一些事情...",
-    created_at: "2024-12-26T20:15:00Z"
-  }
-]
 
 // 获取天气图标信息
 function getWeatherInfo(weather: string) {
@@ -34,7 +15,59 @@ function getMoodInfo(mood: string) {
   return MOOD_TAGS.find(m => m.value === mood)
 }
 
+// 截断文本
+function truncateText(text: string, maxLength: number = 50) {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength) + "..."
+}
+
 export default function GalleryPage() {
+  const [diaries, setDiaries] = useState<Diary[]>([])
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+
+  // 从 localStorage 加载日记数据
+  useEffect(() => {
+    const loadDiaries = () => {
+      const saved = localStorage.getItem("diaries")
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          setDiaries(parsed)
+        } catch (error) {
+          console.error("Failed to parse diaries:", error)
+          setDiaries([])
+        }
+      }
+    }
+
+    loadDiaries()
+
+    // 监听 localStorage 变化（当新日记保存时更新列表）
+    const handleStorageChange = () => {
+      loadDiaries()
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+
+    // 自定义事件监听（同页面内的更新）
+    window.addEventListener("diariesUpdated", handleStorageChange)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+      window.removeEventListener("diariesUpdated", handleStorageChange)
+    }
+  }, [])
+
+  const toggleCard = (id: string) => {
+    const newExpanded = new Set(expandedCards)
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id)
+    } else {
+      newExpanded.add(id)
+    }
+    setExpandedCards(newExpanded)
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       {/* 顶部导航 */}
@@ -56,7 +89,7 @@ export default function GalleryPage() {
       <main className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* 空状态或日记列表 */}
-          {mockDiaries.length === 0 ? (
+          {diaries.length === 0 ? (
             <div className="text-center py-16 space-y-4">
               <div className="flex justify-center">
                 <div className="icon-soft-secondary">
@@ -78,8 +111,9 @@ export default function GalleryPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {mockDiaries.map((diary, index) => {
+              {diaries.map((diary, index) => {
                 const weatherInfo = getWeatherInfo(diary.weather)
+                const isExpanded = expandedCards.has(diary.id)
                 return (
                   <div
                     key={diary.id}
@@ -118,14 +152,27 @@ export default function GalleryPage() {
 
                     {/* 日记内容 */}
                     <div className="text-slate-800 leading-relaxed">
-                      {diary.content}
+                      {isExpanded ? diary.content : truncateText(diary.content)}
                     </div>
 
                     {/* 卡片装饰 */}
                     <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-400">
                       <span>珍藏于此</span>
-                      <button className="hover:text-indigo-600 transition-colors font-medium">
-                        查看详情
+                      <button
+                        onClick={() => toggleCard(diary.id)}
+                        className="hover:text-indigo-600 transition-colors font-medium flex items-center gap-1"
+                      >
+                        {isExpanded ? (
+                          <>
+                            <span>收起</span>
+                            <Icon name="chevron-left" size={14} className="rotate-90" />
+                          </>
+                        ) : (
+                          <>
+                            <span>查看详情</span>
+                            <Icon name="chevron-left" size={14} className="-rotate-90" />
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
